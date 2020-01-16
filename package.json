@@ -1,0 +1,28 @@
+{
+  "name": "promise-for-interview",
+  "version": "1.0.0",
+  "description": "专门针对面试中让你手写一个Promise的情况",
+  "main": "promise.js",
+  "scripts": {
+    "test": "mocha ./test/test.js --reporter=spec | cat ./report/head.html - ./report/tail.html > ./report.html",
+    "test_real": "mocha ./test/test_real_promise.js --reporter=spec | cat ./report/head.html - ./report/tail.html > ./report_real.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/royIdoodle/promise-for-interview.git"
+  },
+  "keywords": [
+    "promise",
+    "interview"
+  ],
+  "author": "royIdoodle@aliyun.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/royIdoodle/promise-for-interview/issues"
+  },
+  "homepage": "https://github.com/royIdoodle/promise-for-interview#readme",
+  "devDependencies": {
+    "mocha": "^7.0.0",
+    "promises-aplus-tests": "^2.1.2"
+  }
+}
