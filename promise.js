@@ -41,23 +41,34 @@ const $Promise = function (executor) {
   }
 }
 
+function resolveNext (callback, value, resolve, reject) {
+  if (typeof callback === 'function') {
+    try {
+      const returnValue = callback(value)
+      if (returnValue instanceof $Promise) {
+        returnValue.then(resolve, reject)
+      } else {
+        resolve(returnValue)
+      }
+    } catch (reason) {
+      reject(reason)
+    }
+  }
+}
+
 $Promise.prototype.then = function (onFulfilledCallback, onRejectedCallback) {
   return new $Promise((resolve, reject) => {
     try {
       if (this.state === FULFILLED) {
-        const value = onFulfilledCallback(this.value);
-        resolve(value);
+        resolveNext(onFulfilledCallback, this.value, resolve, reject)
       } else if (this.state === REJECTED) {
-        const value = onRejectedCallback(this.reason);
-        resolve(value)
+        resolveNext(onRejectedCallback, this.reason, resolve, reject)
       } else if (this.state === PENDING) {
         this.onFulfilledCallbacks.push((value) => {
-          const returnValue = onFulfilledCallback(value);
-          resolve(returnValue);
+          resolveNext(onFulfilledCallback, value, resolve, reject)
         })
         this.onRejectedCallbacks.push(reason => {
-          const returnValue = onRejectedCallback(reason);
-          resolve(returnValue)
+          resolveNext(onRejectedCallback, reason, resolve, reject)
         })
       }
     } catch (reason) {
@@ -69,16 +80,10 @@ $Promise.prototype.then = function (onFulfilledCallback, onRejectedCallback) {
 $Promise.prototype.catch = function (onRejectedCallback) {
   return new $Promise((resolve, reject) => {
     if (this.state === REJECTED) {
-      try {
-        const reason = onRejectedCallback(this.reason)
-        resolve(reason)
-      } catch (e) {
-        reject(e)
-      }
+      resolveNext(onRejectedCallback, this.reason, resolve, reject)
     } else if (this.state === PENDING) {
       this.onRejectedCallbacks.push((reason) => {
-        const returnValue = onRejectedCallback(reason)
-        resolve(returnValue)
+        resolveNext(onRejectedCallback, reason, resolve, reject)
       })
     }
   })
