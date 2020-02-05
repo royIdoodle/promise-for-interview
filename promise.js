@@ -1,63 +1,90 @@
-const PENDING = 'pending';
-const FULFILLED = 'fulfilled';
-const REJECTED = 'rejected';
+const PENDING = 'pending'
+const FULFILLED = 'fulfilled'
+const REJECTED = 'rejected'
 
-class MyPromise {
-    constructor(fn) {
-        this.state = PENDING;
-        this.value = null;
-        this.reason = null;
-        this.onFulfilledCallbacks = [];
-        this.onRejectedCallbacks = [];
-
-        const resolve = (value) => {
-            setTimeout(() => {
-                if (this.state === PENDING) {
-                    this.state = FULFILLED;
-                    this.value = value;
-                    this.onFulfilledCallbacks.forEach((cb) => {
-                        cb(value);
-                    });
-                }
-            });
-        };
-
-        const reject = (reason) => {
-            setTimeout(() => {
-                if (this.state === PENDING) {
-                    this.state = REJECTED;
-                    this.reason = reason;
-                    this.onRejectedCallbacks.forEach((cb) => {
-                        cb(reason);
-                    });
-                }
-            });
-        };
-
-        try {
-            fn(resolve, reject);
-        } catch (e) {
-            reject(e);
-        }
+const $Promise = function (executor) {
+  this.state = PENDING
+  this.value = null
+  this.reason = null
+  this.onFulfilledCallbacks = []
+  this.onRejectedCallbacks = []
+  
+  const resolve = (value) => {
+    if (this.state === PENDING) {
+      this.state = FULFILLED
+      this.value = value
+      this.onFulfilledCallbacks.forEach(callback => {
+        setTimeout(() => {
+          callback(value)
+        }, 0)
+      })
     }
-
-    then(onFulfilled, onRejected) {
-        if (typeof onFulfilled === 'function') {
-            this.onFulfilledCallbacks.push(onFulfilled);
-        }
-        if (typeof onRejected === 'function') {
-            this.onRejectedCallbacks.push(onRejected);
-        }
+  }
+  
+  const reject = (reason) => {
+    if (this.state === PENDING) {
+      this.state = REJECTED
+      this.reason = reason
+      this.onRejectedCallbacks.forEach(callback => {
+        setTimeout(() => {
+          callback(reason)
+        }, 0)
+      })
     }
-
-    catch(onRejected) {
-        if (typeof onRejected === 'function') {
-            this.onRejectedCallbacks.push(onRejected);
-        }
-    }
+  }
+  
+  try {
+    executor(resolve, reject);
+  } catch (reason) {
+    this.reason = reason
+    reject(reason)
+  }
 }
 
-MyPromise.deferred  = function() {
+$Promise.prototype.then = function (onFulfilledCallback, onRejectedCallback) {
+  return new $Promise((resolve, reject) => {
+    try {
+      if (this.state === FULFILLED) {
+        const value = onFulfilledCallback(this.value);
+        resolve(value);
+      } else if (this.state === REJECTED) {
+        const value = onRejectedCallback(this.reason);
+        resolve(value)
+      } else if (this.state === PENDING) {
+        this.onFulfilledCallbacks.push((value) => {
+          const returnValue = onFulfilledCallback(value);
+          resolve(returnValue);
+        })
+        this.onRejectedCallbacks.push(reason => {
+          const returnValue = onRejectedCallback(reason);
+          resolve(returnValue)
+        })
+      }
+    } catch (reason) {
+      reject(reason)
+    }
+  })
+}
+
+$Promise.prototype.catch = function (onRejectedCallback) {
+  return new $Promise((resolve, reject) => {
+    if (this.state === REJECTED) {
+      try {
+        const reason = onRejectedCallback(this.reason)
+        resolve(reason)
+      } catch (e) {
+        reject(e)
+      }
+    } else if (this.state === PENDING) {
+      this.onRejectedCallbacks.push((reason) => {
+        const returnValue = onRejectedCallback(reason)
+        resolve(returnValue)
+      })
+    }
+  })
+}
+
+$Promise.deferred  = function() {
     const defer = {}
     defer.promise = new MyPromise((resolve, reject) => {
         defer.resolve = resolve
@@ -66,4 +93,4 @@ MyPromise.deferred  = function() {
     return defer
 }
 
-module.exports = MyPromise;
+module.exports = $Promise;
