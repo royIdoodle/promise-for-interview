@@ -89,9 +89,10 @@ $Promise.prototype.catch = function (onRejectedCallback) {
   })
 }
 
+// mocha测试用
 $Promise.deferred  = function() {
     const defer = {}
-    defer.promise = new MyPromise((resolve, reject) => {
+    defer.promise = new $Promise((resolve, reject) => {
         defer.resolve = resolve
         defer.reject = reject
     })
