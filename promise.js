@@ -53,6 +53,8 @@ function resolveNext (callback, value, resolve, reject) {
     } catch (reason) {
       reject(reason)
     }
+  } else {
+    resolve(callback)
   }
 }
 
