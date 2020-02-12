@@ -1,4 +1,4 @@
-// Promise的状态一旦变更，则不可逆转
+// then方法注册的回调只会被调用一次
 const p = new Promise((resolve, reject) => {
   resolve('foo')
   setTimeout(() => {
